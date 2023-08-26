@@ -1,10 +1,12 @@
 import { Boom } from '@hapi/boom'
 import NodeCache from 'node-cache'
 import readline from 'readline'
-import makeWASocket, { AnyMessageContent, delay, DisconnectReason, fetchLatestBaileysVersion, getAggregateVotesInPollMessage, makeCacheableSignalKeyStore, makeInMemoryStore, PHONENUMBER_MCC, proto, useMultiFileAuthState, WAMessageContent, WAMessageKey } from '../src'
+import {makeWASocket, AnyMessageContent, delay, DisconnectReason, fetchLatestBaileysVersion, getAggregateVotesInPollMessage, makeCacheableSignalKeyStore, makeInMemoryStore, PHONENUMBER_MCC, proto, useMultiFileAuthState, WAMessageContent, WAMessageKey } from '../src'
 import MAIN_LOGGER from '../src/Utils/logger'
 import open from 'open'
 import fs from 'fs'
+
+import qrCode  from 'qrcode'
 
 const logger = MAIN_LOGGER.child({})
 logger.level = 'trace'
@@ -58,6 +60,25 @@ const startSock = async() => {
 	})
 
 	store?.bind(sock.ev)
+
+	sock.ev.on('connection.update', ({qr, connection, isNewLogin, isOnline, receivedPendingNotifications}) => { 
+		logger.info('dd ')
+
+		console.log(qr)
+
+		if(qr) {
+			 qrCode.toFile('qr.png', qr, {
+				color: {
+					dark: '#000',   // Dark color for modules
+					light: '#FFF'   // Light color for background
+				}
+			 }, (err) => {
+
+				if (err) logger.error(err) 
+
+			 })
+		}
+	})
 
 	// Pairing code for Web clients
 	if(usePairingCode && !sock.authState.creds.registered) {
@@ -213,7 +234,7 @@ const startSock = async() => {
 					for(const msg of upsert.messages) {
 						if(!msg.key.fromMe && doReplies) {
 							console.log('replying to', msg.key.remoteJid)
-							await sock!.readMessages([msg.key])
+							await sock.readMessages([msg.key])
 							await sendMessageWTyping({ text: 'Hello there!' }, msg.key.remoteJid!)
 						}
 					}
