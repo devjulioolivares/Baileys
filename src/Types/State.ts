@@ -1,5 +1,12 @@
 import { Contact } from './Contact'
 
+export type LastDisconnectOutputError = {
+    /** The HTTP status code*/
+    output: {
+		statusCode: number
+	}
+}
+
 export type WAConnectionState = 'open' | 'connecting' | 'close'
 
 export type ConnectionState = {
@@ -7,7 +14,7 @@ export type ConnectionState = {
 	connection: WAConnectionState
 	/** the error that caused the connection to close */
 	lastDisconnect?: {
-		error: Error | undefined
+		error: Error | LastDisconnectOutputError | undefined
 		date: Date
 	}
 	/** is this a new login */
